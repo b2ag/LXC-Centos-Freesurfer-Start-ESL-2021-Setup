@@ -1,0 +1,37 @@
+- name: check if locale exists
+  shell: "locale -a | grep -i {{ config_system_locale | regex_replace('-', '') | quote }}"
+  register: found_locale
+  changed_when: no
+  failed_when: no
+
+- name: create locale
+  command: "localedef -i {{ config_system_locale | regex_replace('(.*)\\..*', '\\1') | quote }} -f {{ config_system_locale | regex_replace('.*\\.(.*)', '\\1') | quote }} {{ config_system_locale | quote }}"
+  when: not ansible_check_mode and found_locale.rc == 0
+
+- name: check if language exists
+  shell: "locale -a | grep -i {{ config_system_language | regex_replace('-', '') | quote }}"
+  register: found_language
+  changed_when: no
+  failed_when: no
+
+- name: create language
+  command: "localedef -i {{ config_system_language | regex_replace('(.*)\\..*', '\\1') | quote }} -f {{ config_system_language | regex_replace('.*\\.(.*)', '\\1') | quote }} {{ config_system_language | quote }}"
+  when: not ansible_check_mode and found_language.rc == 0
+
+- name: Get current locale and language configuration
+  command: localectl status
+  register: locale_status
+  changed_when: false
+
+- name: Parse 'LANG' from current locale and language configuration
+  set_fact:
+    locale_lang: "{{ locale_status.stdout | regex_search('LANG=([^\n]+)', '\\1') }}"
+
+- name: Parse 'LANGUAGE' from current locale and language configuration
+  set_fact:
+    locale_language: "{{ locale_status.stdout | regex_search('LANGUAGE=([^\n]+)', '\\1') | default([locale_lang], true) }}"
+
+- name: Configure locale to '{{ config_system_locale }}' and language to '{{ config_system_language }}'
+  command: localectl set-locale LANG={{ config_system_locale }} LANGUAGE={{ config_system_language }}
+  changed_when: locale_lang != config_system_locale or locale_language != config_system_language
+

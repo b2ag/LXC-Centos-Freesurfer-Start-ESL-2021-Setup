@@ -1,0 +1,129 @@
+---
+- name: Install Freesurfer in a virtual CentOS system
+  #hosts: CT66465021
+  hosts: all
+  user: root
+  #user: localadmin
+  #become: true
+  environment:
+    http_proxy: http://10.24.15.48:42342
+    HTTP_PROXY: http://10.24.15.48:42342
+  vars_files:
+  - vars/main.yml
+  tasks:
+  - name: Run bootstrap stuff
+    ansible.builtin.include: tasks/bootstrap.yml
+  - name: Setup graphical remote access
+    ansible.builtin.include: tasks/x2go.yml
+  - name: Gather the package facts
+    ansible.builtin.package_facts:
+      manager: auto
+  #- name: Download Freesurfer package to remote (untested)
+  #  ansible.builtin.get_url:
+  #    url: https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.1.1/freesurfer-CentOS8-7.1.1-1.x86_64.rpm
+  #    dest: /tmp
+  #    checksum: md5:7f06be7ee8e8bdc6d4f364b97225d1a8
+  - name: Temporary copy Freesurfer package to remote
+    ansible.builtin.copy:
+      src: 'freesurfer-CentOS8-7.1.1-1.x86_64.rpm'
+      dest: /tmp
+    when: "'freesurfer' not in ansible_facts.packages"
+  - name: Install Freesurfer
+    ansible.builtin.dnf:
+      name: '/tmp/freesurfer-CentOS8-7.1.1-1.x86_64.rpm'
+      state: present
+      disable_gpg_check: yes
+    when: "'freesurfer' not in ansible_facts.packages"
+  - name: Delete temporary remote copy of Freesurfer package
+    ansible.builtin.file:
+      path: "/tmp/freesurfer-CentOS8-7.1.1-1.x86_64.rpm"
+      state: absent
+  - name: Source Freesurfer environment via /etc/profile.d
+    copy:
+      dest: /etc/profile.d/freesurfer.sh
+      content: | 
+        #!/bin/sh
+        export FREESURFER_HOME=/usr/local/freesurfer/7.1.1-1
+        export SUBJECTS_DIR="$HOME/freesurfer_subjects"
+        source "$FREESURFER_HOME/SetUpFreeSurfer.sh"
+  - name: Add Freesurfer license file
+    copy:
+      dest: /usr/local/freesurfer/7.1.1-1/.license
+      content: | 
+        fressurferLicenseUser (non-working example)
+        UserID
+         someCrypto
+         someMoreCrypto
+  - name: Ensure group 'freesurfer' exists
+    ansible.builtin.group:
+      name: freesurfer
+      state: present
+  - name: Add the user 'freesurfer'
+    ansible.builtin.user:
+      name: freesurfer
+      comment: Freesurfer User
+      uid: 1000
+      group: freesurfer
+      password: 'CHANGEME' # crypted unix password hash
+  - name: Ensure freesurfer is lingering
+    include_tasks:
+      file: tasks/linger.yml
+    with_items: "freesurfer"
+  - name: Create freesurfer/freesurfer_subjects 
+    ansible.builtin.file:
+      path: '/home/freesurfer/freesurfer_subjects'
+      state: directory
+      owner: freesurfer
+  - name: Create freesurfer/Desktop
+    ansible.builtin.file:
+      path: '/home/freesurfer/Desktop'
+      state: directory
+      owner: freesurfer
+  - name: Place README.TXT on freesurfer/Desktop
+    ansible.builtin.copy:
+      src: 'README.TXT'
+      dest: '/home/freesurfer/Desktop'
+      owner: freesurfer
+  - name: Add starter for Freeview on freesurfer/Desktop
+    copy:
+      dest: '/home/freesurfer/Desktop/Freeview.desktop'
+      content: |
+        [Desktop Entry]
+        Version=1.0
+        Type=Application
+        Name=Freeview
+        Comment=
+        Exec=/usr/local/freesurfer/7.1.1-1/bin/freeview
+        Icon=
+        Path=
+        Terminal=false
+        StartupNotify=false
+      owner: freesurfer
+      mode: u+x
+  - name: Place process_dicom_in_freesurfer.sh in freesurfer home
+    ansible.builtin.copy:
+      src: 'process_dicom_in_freesurfer.sh'
+      dest: '/home/freesurfer'
+      owner: freesurfer
+      mode: u+x
+  - name: Add starter for process_dicom_in_freesurfer.sh on freesurfer/Desktop
+    copy:
+      dest: '/home/freesurfer/Desktop/ewtewteawser.desktop'
+      content: |
+        [Desktop Entry]
+        Version=1.0
+        Type=Application
+        Name=ewtewteawser
+        Comment=
+        Exec=/home/freesurfer/process_dicom_in_freesurfer.sh
+        Icon=
+        Path=
+        Terminal=true
+        StartupNotify=false
+        Name[en_US.UTF-8]=Process dicom_in with Freesurfer
+      owner: freesurfer
+      mode: u+x
+  - name: Install and configure Samba
+    include_role:
+      name: bertvv.samba
+

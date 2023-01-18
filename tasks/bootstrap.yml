@@ -1,0 +1,21 @@
+  - name: Enable EPEL Repository
+    ansible.builtin.dnf:
+      name: epel-release
+      state: latest
+  - name: Update system
+    ansible.builtin.dnf:
+      name: '*'
+      state: latest
+  - name: Install some basic packages
+    ansible.builtin.dnf:
+      name:
+        - glibc-locale-source
+        - glibc-langpack-en
+        - glibc-langpack-de
+        - less
+        - hostname
+        - mc
+        - vim
+      state: latest
+  - name: Generate and set the locale
+    ansible.builtin.include: locale.yml

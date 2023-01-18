@@ -1,0 +1,9 @@
+config_system_locale: 'de_DE.UTF-8'
+config_system_language: 'en_US.UTF-8'
+samba_log: /var/log/samba.log
+samba_log_size: 60000
+samba_log_level: '3 passdb:5 auth:10 winbind:2 '
+samba_users:
+  - name: freesurfer
+    password: secretpasswordChangeME!!!!1!
+samba_load_homes: true

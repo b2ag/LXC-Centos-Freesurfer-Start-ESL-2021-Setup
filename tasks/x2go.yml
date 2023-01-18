@@ -1,0 +1,22 @@
+  - name: Install packges from group "Xfce"
+    ansible.builtin.dnf:
+      name: '@Xfce'
+      state: latest
+  - name: Uninstall screensaver to not block X2Go
+    ansible.builtin.dnf:
+      name: 'xfce4-screensaver'
+      state: absent
+  - name: Uninstall pulseaudio panel which caused out of memory with X2Go
+    ansible.builtin.dnf:
+      name: 'xfce4-pulseaudio-plugin'
+      state: absent
+  - name: Install X2Go Server
+    ansible.builtin.dnf:
+      name: x2goserver
+      enablerepo: 'powertools'
+      state: latest
+  - name: Enable x2gocleansessions.service
+    ansible.builtin.systemd:
+      name: x2gocleansessions.service
+      state: started
+      enabled: yes
