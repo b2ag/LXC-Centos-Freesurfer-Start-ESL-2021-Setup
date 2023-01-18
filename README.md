@@ -53,8 +53,8 @@ There is a manual approach by creating the folder `subjid/mri/orig` and generati
 
 - Create a LXContainer in Proxmox with template "centos-8-default" version 20201210
 
-    # [root@ep-ct66465021 ~]#  cat /etc/centos-release
-    # CentOS Linux release 8.5.2111
+        [root@ep-ct66465021 ~]#  cat /etc/centos-release
+        CentOS Linux release 8.5.2111
 
 - Configure proxy server to download packages (maybe not needed, depends on your network)
 
