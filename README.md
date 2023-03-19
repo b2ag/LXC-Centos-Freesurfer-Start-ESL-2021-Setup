@@ -2,6 +2,8 @@
 
 This is the Start-ESL 2021 Freesurfer-Setup repository containing documentation in form of ansible tasks to assist with deployment and configuration of Freesurfer.
 
+You have to bring your own LXC (Linux Containers) virtualized Centos 8 or similar.
+
 # Preparing MRT data to be used by Freesurfer
 
 ## Sanitizing DICOM files
