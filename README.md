@@ -1,6 +1,6 @@
 # What is this?
 
-This is the Start-ESL 2021 Freesurfer-Setup repository containing documentation, ansible tasks and other things to assist with deployment and configuration of Freesurfer.
+This is the Start-ESL 2021 Freesurfer-Setup repository containing documentation in form of ansible tasks to assist with deployment and configuration of Freesurfer.
 
 # Preparing MRT data to be used by Freesurfer
 
